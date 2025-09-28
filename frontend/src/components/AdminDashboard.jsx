@@ -4,86 +4,60 @@ import { motion } from 'framer-motion';
 const AdminDashboard = ({ onLogout }) => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ownerSubmissions, setOwnerSubmissions] = useState([]);
+  const [activeTab, setActiveTab] = useState('inquiries');
 
   useEffect(() => {
     fetchInquiries();
+    fetchOwnerSubmissions();
   }, []);
 
   const fetchInquiries = async () => {
     try {
-      // Fetch from backend API
-      const response = await fetch('http://localhost:5000/api/inquiries');
-      const apiInquiries = await response.json();
-      
-      // Fetch from localStorage (all user inquiries)
-      const localStorageInquiries = [];
-      const keys = Object.keys(localStorage);
-      
-      keys.forEach(key => {
-        if (key.startsWith('userInquiries_')) {
-          try {
-            const userInquiries = JSON.parse(localStorage.getItem(key));
-            if (Array.isArray(userInquiries)) {
-              userInquiries.forEach(inquiry => {
-                localStorageInquiries.push({
-                  _id: inquiry.id,
-                  name: inquiry.name || 'User Inquiry',
-                  email: inquiry.email || 'user@example.com',
-                  phone: inquiry.phone || 'N/A',
-                  brand: inquiry.brand,
-                  message: inquiry.message,
-                  createdAt: inquiry.date,
-                  status: inquiry.status,
-                  source: 'localStorage'
-                });
-              });
-            }
-          } catch (error) {
-            console.error('Error parsing localStorage inquiry:', error);
-          }
-        }
-      });
-      
-      // Combine and sort all inquiries by date (newest first)
-      const allInquiries = [...apiInquiries, ...localStorageInquiries];
-      allInquiries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      setInquiries(allInquiries);
+      const response = await fetch('http://localhost:5001/api/inquiries');
+      const data = await response.json();
+      setInquiries(data);
     } catch (error) {
       console.error('Error fetching inquiries:', error);
-      // If API fails, still try to get localStorage inquiries
-      const localStorageInquiries = [];
-      const keys = Object.keys(localStorage);
-      
-      keys.forEach(key => {
-        if (key.startsWith('userInquiries_')) {
-          try {
-            const userInquiries = JSON.parse(localStorage.getItem(key));
-            if (Array.isArray(userInquiries)) {
-              userInquiries.forEach(inquiry => {
-                localStorageInquiries.push({
-                  _id: inquiry.id,
-                  name: inquiry.name || 'User Inquiry',
-                  email: inquiry.email || 'user@example.com',
-                  phone: inquiry.phone || 'N/A',
-                  brand: inquiry.brand,
-                  message: inquiry.message,
-                  createdAt: inquiry.date,
-                  status: inquiry.status,
-                  source: 'localStorage'
-                });
-              });
-            }
-          } catch (error) {
-            console.error('Error parsing localStorage inquiry:', error);
-          }
-        }
-      });
-      
-      localStorageInquiries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setInquiries(localStorageInquiries);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOwnerSubmissions = async () => {
+    try {
+      const res = await fetch('http://localhost:5001/api/owner-submissions');
+      const data = await res.json();
+      setOwnerSubmissions(data);
+    } catch (e) {
+      console.error('Error fetching submissions', e);
+    }
+  };
+
+  const updateInquiry = async (id, action) => {
+    try {
+      await fetch(`http://localhost:5001/api/inquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      await fetchInquiries();
+    } catch (e) {
+      console.error('Update inquiry failed', e);
+    }
+  };
+
+  const updateSubmission = async (id, action) => {
+    try {
+      const res = await fetch(`http://localhost:5001/api/owner-submissions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      await res.json();
+      await fetchOwnerSubmissions();
+    } catch (e) {
+      console.error('Update failed', e);
     }
   };
 
@@ -115,6 +89,10 @@ const AdminDashboard = ({ onLogout }) => {
             Logout
           </button>
         </div>
+        <div className="admin-tabs">
+          <button className={activeTab==='inquiries' ? 'active' : ''} onClick={() => setActiveTab('inquiries')}>Inquiries</button>
+          <button className={activeTab==='submissions' ? 'active' : ''} onClick={() => setActiveTab('submissions')}>Owner Submissions</button>
+        </div>
 
         <div className="dashboard-stats">
           <div className="stat-card">
@@ -130,75 +108,102 @@ const AdminDashboard = ({ onLogout }) => {
                      inquiryDate.getFullYear() === now.getFullYear();
             }).length}</p>
           </div>
-          <div className="stat-card">
-            <h3>From API</h3>
-            <p>{inquiries.filter(inquiry => !inquiry.source).length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>From Users</h3>
-            <p>{inquiries.filter(inquiry => inquiry.source === 'localStorage').length}</p>
-          </div>
         </div>
 
-        <div className="inquiries-section">
-          <h2>All Inquiries</h2>
-          {loading ? (
-            <div className="loading">Loading inquiries...</div>
-          ) : (
+        {activeTab === 'inquiries' && (
+          <div className="inquiries-section">
+            <h2>Recent Inquiries</h2>
+            {loading ? (
+              <div className="loading">Loading inquiries...</div>
+            ) : (
+              <div className="inquiries-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Brand</th>
+                      <th>Message</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inquiries.map((inquiry) => (
+                      <tr key={inquiry._id}>
+                        <td>{formatDate(inquiry.createdAt)}</td>
+                        <td>{inquiry.name}</td>
+                        <td>{inquiry.email}</td>
+                        <td>{inquiry.phone || 'N/A'}</td>
+                        <td>{inquiry.brand}</td>
+                        <td>
+                          <div className="message-preview">
+                            {inquiry.message ? 
+                              (inquiry.message.length > 50 ? 
+                                inquiry.message.substring(0, 50) + '...' : 
+                                inquiry.message
+                              ) : 'No message'
+                            }
+                          </div>
+                        </td>
+                        <td>{inquiry.status || 'Pending'}</td>
+                        <td>
+                          <button onClick={() => updateInquiry(inquiry._id, 'approve')} disabled={inquiry.status==='Approved'}>Approve</button>
+                          <button onClick={() => updateInquiry(inquiry._id, 'reject')} disabled={inquiry.status==='Rejected'}>Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {inquiries.length === 0 && (
+                  <div className="no-inquiries">
+                    <p>No inquiries found.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'submissions' && (
+          <div className="submissions-section">
+            <h2>Owner Submissions</h2>
             <div className="inquiries-table">
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
                     <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Investment</th>
                     <th>Status</th>
-                    <th>Message</th>
-                    <th>Source</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {inquiries.map((inquiry) => (
-                    <tr key={inquiry._id}>
-                      <td>{formatDate(inquiry.createdAt)}</td>
-                      <td>{inquiry.name}</td>
-                      <td>{inquiry.email}</td>
-                      <td>{inquiry.phone || 'N/A'}</td>
-                      <td>{inquiry.brand}</td>
+                  {ownerSubmissions.map(s => (
+                    <tr key={s.id}>
+                      <td>{s.name}</td>
+                      <td>{s.category}</td>
+                      <td>₹{s.investmentMin.toLocaleString()} - ₹{s.investmentMax.toLocaleString()}</td>
+                      <td>{s.status}</td>
                       <td>
-                        <span className={`status-badge ${inquiry.status?.toLowerCase().replace(' ', '-') || 'pending'}`}>
-                          {inquiry.status || 'Pending'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="message-preview">
-                          {inquiry.message ? 
-                            (inquiry.message.length > 50 ? 
-                              inquiry.message.substring(0, 50) + '...' : 
-                              inquiry.message
-                            ) : 'No message'
-                          }
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`source-badge ${inquiry.source === 'localStorage' ? 'user' : 'api'}`}>
-                          {inquiry.source === 'localStorage' ? 'User' : 'API'}
-                        </span>
+                        <button onClick={() => updateSubmission(s.id, 'approve')} disabled={s.status==='approved'}>Approve</button>
+                        <button onClick={() => updateSubmission(s.id, 'reject')} disabled={s.status==='rejected'}>Reject</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {inquiries.length === 0 && (
+              {ownerSubmissions.length === 0 && (
                 <div className="no-inquiries">
-                  <p>No inquiries found.</p>
+                  <p>No submissions yet.</p>
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

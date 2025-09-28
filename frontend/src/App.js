@@ -12,6 +12,7 @@ import Reviews from './components/Reviews';
 import UnifiedLogin from './components/UnifiedLogin';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import OwnerSubmit from './components/OwnerSubmit';
 
 function App() {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
@@ -105,7 +106,7 @@ function App() {
         {isUserLoggedIn && (
         <nav className="navbar">
           <div className="nav-brand">
-            <Link to="/" onClick={closeMobileMenu}>FranchiseHub</Link>
+            <Link to="/" onClick={closeMobileMenu}>FranchiseConnect</Link>
           </div>
           
           {/* Hamburger Menu Button */}
@@ -125,6 +126,7 @@ function App() {
             <Link to="/about" onClick={closeMobileMenu}>About</Link>
             <Link to="/contact" onClick={closeMobileMenu}>Contact</Link>
             <Link to="/reviews" onClick={closeMobileMenu}>Reviews</Link>
+            <Link to="/submit-franchise" onClick={closeMobileMenu}>Submit Franchise</Link>
             <Link to="/dashboard" className="dashboard-link" onClick={closeMobileMenu}>Dashboard</Link>
             <button onClick={handleUserLogout} className="logout-nav-button">
               Logout
@@ -226,13 +228,24 @@ function App() {
                 <Page><Reviews /></Page>
               } 
             />
+
+            <Route 
+              path="/submit-franchise" 
+              element={
+                isAdminLoggedIn ? 
+                <Navigate to="/admin" replace /> :
+                !isUserLoggedIn ? 
+                <Navigate to="/login" replace /> : 
+                <Page><OwnerSubmit /></Page>
+              } 
+            />
           </Routes>
         </main>
         
         {/* Only show footer for regular users */}
         {isUserLoggedIn && (
         <footer className="footer">
-          <p>&copy; 2024 FranchiseHub. All rights reserved.</p>
+          <p>&copy; 2024 FranchiseConnect. All rights reserved.</p>
         </footer>
         )}
       </div>

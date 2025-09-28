@@ -368,11 +368,6 @@ body {
   color: #0c5460;
 }
 
-.status-badge.completed {
-  background: #d4edda;
-  color: #155724;
-}
-
 .inquiry-date {
   color: #718096;
   font-size: 0.9rem;
@@ -2932,36 +2927,4 @@ body {
   background: #1e293b;
   color: #9ca3af;
   border: 1px solid #334155;
-}
-
-.app.dark .brand-description,
-.app.dark .franchise-description {
-  color: #9ca3af;
-}
-
-.app.dark .brand-info h3,
-.app.dark .franchise-content h3 {
-  color: #ffffff;
-}
-
-.app.dark .inquiry-date {
-  color: #9ca3af;
-}
-
-.source-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.source-badge.api {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.source-badge.user {
-  background: #fff3cd;
-  color: #856404;
 }

@@ -7,9 +7,9 @@ const defaultFoodBrands = [
     id: 1,
     name: "Burger Palace",
     category: "Fast Food",
-    investment: "₹1.2 Cr - ₹2.5 Cr",
-    investmentMin: 12000000,
-    investmentMax: 25000000,
+    investment: "₹80 Thousand - ₹2.5 Lakh",
+    investmentMin: 80000,
+    investmentMax: 250000,
     description: "Premium burger chain with fresh ingredients and unique recipes",
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
     features: ["Fresh ingredients", "Quick service", "Drive-thru available", "Training provided"]
@@ -18,9 +18,9 @@ const defaultFoodBrands = [
     id: 2,
     name: "Pizza Express",
     category: "Pizza & Italian",
-    investment: "₹1.6 Cr - ₹3.2 Cr",
-    investmentMin: 16000000,
-    investmentMax: 32000000,
+    investment: "₹1 Lakh - ₹3 Lakh",
+    investmentMin: 100000,
+    investmentMax: 300000,
     description: "Authentic Italian pizza with wood-fired ovens and premium toppings",
     image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop",
     features: ["Wood-fired ovens", "Fresh dough", "Premium toppings", "Delivery service"]
@@ -29,9 +29,9 @@ const defaultFoodBrands = [
     id: 3,
     name: "Taco Fiesta",
     category: "Mexican Food",
-    investment: "₹80 Lakh - ₹2 Cr",
-    investmentMin: 8000000,
-    investmentMax: 20000000,
+    investment: "₹80 Thousand - ₹2 Lakh",
+    investmentMin: 80000,
+    investmentMax: 200000,
     description: "Authentic Mexican street food with fresh tortillas and bold flavors",
     image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop",
     features: ["Fresh tortillas", "Authentic recipes", "Quick service", "Catering available"]
@@ -40,9 +40,9 @@ const defaultFoodBrands = [
     id: 4,
     name: "Sushi Master",
     category: "Japanese Cuisine",
-    investment: "₹2 Cr - ₹4 Cr",
-    investmentMin: 20000000,
-    investmentMax: 40000000,
+    investment: "₹1.5 Lakh - ₹4 Lakh",
+    investmentMin: 150000,
+    investmentMax: 400000,
     description: "Premium sushi restaurant with expert chefs and fresh fish",
     image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
     features: ["Expert chefs", "Fresh fish", "Omakase menu", "Private dining"]
@@ -51,9 +51,9 @@ const defaultFoodBrands = [
     id: 5,
     name: "Coffee Haven",
     category: "Coffee & Beverages",
-    investment: "₹65 Lakh - ₹1.6 Cr",
-    investmentMin: 6500000,
-    investmentMax: 16000000,
+    investment: "₹80 Thousand - ₹1.6 Lakh",
+    investmentMin: 80000,
+    investmentMax: 160000,
     description: "Artisanal coffee shop with specialty drinks and pastries",
     image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop",
     features: ["Artisanal coffee", "Fresh pastries", "WiFi available", "Loyalty program"]
@@ -62,9 +62,9 @@ const defaultFoodBrands = [
     id: 6,
     name: "Ice Cream Delight",
     category: "Desserts",
-    investment: "₹50 Lakh - ₹1.2 Cr",
-    investmentMin: 5000000,
-    investmentMax: 12000000,
+    investment: "₹80 Thousand - ₹1.2 Lakh",
+    investmentMin: 80000,
+    investmentMax: 120000,
     description: "Gourmet ice cream with unique flavors and toppings",
     image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop",
     features: ["Gourmet flavors", "Custom toppings", "Seasonal menu", "Party catering"]
@@ -88,19 +88,37 @@ const Franchises = () => {
     brand: ''
   });
 
+  // Format numeric investment to human-readable (Thousands/Lakh)
+  const formatAmount = (amount) => {
+    if (amount == null) return '';
+    if (amount < 100000) {
+      const thousands = Math.round(amount / 1000);
+      return `₹${thousands} Thousand`;
+    }
+    const lakhs = Math.round((amount / 100000) * 10) / 10; // 1 decimal
+    return `₹${lakhs} Lakh`;
+  };
+
+  const formatInvestmentRange = (min, max, fallbackLabel) => {
+    if (typeof min === 'number' && typeof max === 'number') {
+      return `${formatAmount(min)} - ${formatAmount(max)}`;
+    }
+    return fallbackLabel || '';
+  };
+
   // Price range options
   const priceRanges = [
     { value: '', label: 'All Prices' },
-    { value: 'under-1cr', label: 'Under ₹1 Cr', max: 10000000 },
-    { value: '1cr-2cr', label: '₹1 Cr - ₹2 Cr', min: 10000000, max: 20000000 },
-    { value: '2cr-3cr', label: '₹2 Cr - ₹3 Cr', min: 20000000, max: 30000000 },
-    { value: '3cr-4cr', label: '₹3 Cr - ₹4 Cr', min: 30000000, max: 40000000 },
-    { value: 'above-4cr', label: 'Above ₹4 Cr', min: 40000000 }
+    { value: '80k-1l', label: '₹80,000 - ₹1 Lakh', min: 80000, max: 100000 },
+    { value: '1l-3l', label: '₹1 Lakh - ₹3 Lakh', min: 100000, max: 300000 },
+    { value: '3l-5l', label: '₹3 Lakh - ₹5 Lakh', min: 300000, max: 500000 },
+    { value: '5l-7l', label: '₹5 Lakh - ₹7 Lakh', min: 500000, max: 700000 },
+    { value: '7l-10l', label: '₹7 Lakh - ₹10 Lakh', min: 700000, max: 1000000 }
   ];
 
   useEffect(() => {
     // Fetch brands from API
-    fetch('http://localhost:5000/api/brands')
+    fetch('http://localhost:5001/api/brands')
       .then(response => response.json())
       .then(data => setFoodBrands(data))
       .catch(error => {
@@ -109,7 +127,7 @@ const Franchises = () => {
       });
 
     // Fetch categories from API or use fallback
-    fetch('http://localhost:5000/api/categories')
+    fetch('http://localhost:5001/api/categories')
       .then(response => response.json())
       .then(data => setCategories(data))
       .catch(error => {
@@ -120,11 +138,11 @@ const Franchises = () => {
       });
   }, []);
 
-  // Function to save user inquiry to localStorage
+  // Function to save user inquiry to sessionStorage
   const saveUserInquiry = (inquiryData) => {
     try {
       // Get current logged-in user
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userData = JSON.parse(sessionStorage.getItem('userData') || '{}');
       const userId = userData.id;
       
       if (!userId) {
@@ -132,14 +150,11 @@ const Franchises = () => {
         return false;
       }
 
-      const existingInquiries = localStorage.getItem(`userInquiries_${userId}`);
+      const existingInquiries = sessionStorage.getItem(`userInquiries_${userId}`);
       let userInquiries = existingInquiries ? JSON.parse(existingInquiries) : [];
       
       const newInquiry = {
         id: Date.now(), // Use timestamp as unique ID
-        name: inquiryData.name,
-        email: inquiryData.email,
-        phone: inquiryData.phone,
         brand: inquiryData.brand,
         date: new Date().toISOString(),
         status: 'Pending',
@@ -147,7 +162,7 @@ const Franchises = () => {
       };
       
       userInquiries.unshift(newInquiry); // Add to beginning of array
-      localStorage.setItem(`userInquiries_${userId}`, JSON.stringify(userInquiries));
+      sessionStorage.setItem(`userInquiries_${userId}`, JSON.stringify(userInquiries));
       
       // Trigger custom event to update dashboard for specific user
       window.dispatchEvent(new CustomEvent('inquirySubmitted', {
@@ -167,7 +182,7 @@ const Franchises = () => {
 
     try {
       // Save to backend API
-      const response = await fetch('http://localhost:5000/api/inquiries', {
+      const response = await fetch('http://localhost:5001/api/inquiries', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +193,7 @@ const Franchises = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Save to localStorage for user dashboard
+        // Save to sessionStorage for user dashboard
         const savedToLocal = saveUserInquiry(inquiryForm);
         
         if (savedToLocal) {
@@ -201,7 +216,7 @@ const Franchises = () => {
     } catch (error) {
       console.error('Error:', error);
       
-      // Even if backend fails, save to localStorage for demo purposes
+      // Even if backend fails, save to sessionStorage for demo purposes
       const savedToLocal = saveUserInquiry(inquiryForm);
       
       if (savedToLocal) {
@@ -321,7 +336,7 @@ const Franchises = () => {
                 <h3>{brand.name}</h3>
                 <p className="franchise-category">{brand.category}</p>
                 <p className="franchise-investment">
-                  <strong>Investment:</strong> {brand.investment}
+                  <strong>Investment:</strong> {formatInvestmentRange(brand.investmentMin, brand.investmentMax, brand.investment)}
                 </p>
                 <p className="franchise-description">{brand.description}</p>
                 

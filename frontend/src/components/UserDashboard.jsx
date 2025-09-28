@@ -5,7 +5,7 @@ const UserDashboard = ({ userData, onLogout }) => {
   const [userInquiries, setUserInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch user-specific inquiries from localStorage
+  // Function to fetch user-specific inquiries from sessionStorage
   const fetchUserInquiries = () => {
     try {
       const userId = userData?.id;
@@ -15,13 +15,13 @@ const UserDashboard = ({ userData, onLogout }) => {
         return;
       }
 
-      const storedInquiries = localStorage.getItem(`userInquiries_${userId}`);
+      const storedInquiries = sessionStorage.getItem(`userInquiries_${userId}`);
       if (storedInquiries) {
         setUserInquiries(JSON.parse(storedInquiries));
       } else {
         // Initialize with empty array for new users
         setUserInquiries([]);
-        localStorage.setItem(`userInquiries_${userId}`, JSON.stringify([]));
+        sessionStorage.setItem(`userInquiries_${userId}`, JSON.stringify([]));
       }
     } catch (error) {
       console.error('Error fetching user inquiries:', error);
@@ -60,8 +60,8 @@ const UserDashboard = ({ userData, onLogout }) => {
   }, [userData?.id]);
 
   const handleLogout = () => {
-    localStorage.removeItem('userLoggedIn');
-    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userLoggedIn');
+    sessionStorage.removeItem('userData');
     onLogout();
   };
 

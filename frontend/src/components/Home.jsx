@@ -8,7 +8,9 @@ const defaultFoodBrands = [
     id: 1,
     name: "Burger Palace",
     category: "Fast Food",
-    investment: "₹1.2 Cr - ₹2.5 Cr",
+    investment: "₹80 Thousand - ₹2.5 Lakh",
+    investmentMin: 80000,
+    investmentMax: 250000,
     description: "Premium burger chain with fresh ingredients and unique recipes",
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
     features: ["Fresh ingredients", "Quick service", "Drive-thru available", "Training provided"]
@@ -17,7 +19,9 @@ const defaultFoodBrands = [
     id: 2,
     name: "Pizza Express",
     category: "Pizza & Italian",
-    investment: "₹1.6 Cr - ₹3.2 Cr",
+    investment: "₹1 Lakh - ₹3 Lakh",
+    investmentMin: 100000,
+    investmentMax: 300000,
     description: "Authentic Italian pizza with wood-fired ovens and premium toppings",
     image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop",
     features: ["Wood-fired ovens", "Fresh dough", "Premium toppings", "Delivery service"]
@@ -26,7 +30,9 @@ const defaultFoodBrands = [
     id: 3,
     name: "Taco Fiesta",
     category: "Mexican Food",
-    investment: "₹80 Lakh - ₹2 Cr",
+    investment: "₹80 Thousand - ₹2 Lakh",
+    investmentMin: 80000,
+    investmentMax: 200000,
     description: "Authentic Mexican street food with fresh tortillas and bold flavors",
     image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop",
     features: ["Fresh tortillas", "Authentic recipes", "Quick service", "Catering available"]
@@ -35,7 +41,9 @@ const defaultFoodBrands = [
     id: 4,
     name: "Sushi Master",
     category: "Japanese Cuisine",
-    investment: "₹2 Cr - ₹4 Cr",
+    investment: "₹1.5 Lakh - ₹4 Lakh",
+    investmentMin: 150000,
+    investmentMax: 400000,
     description: "Premium sushi restaurant with expert chefs and fresh fish",
     image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
     features: ["Expert chefs", "Fresh fish", "Omakase menu", "Private dining"]
@@ -44,7 +52,9 @@ const defaultFoodBrands = [
     id: 5,
     name: "Coffee Haven",
     category: "Coffee & Beverages",
-    investment: "₹65 Lakh - ₹1.6 Cr",
+    investment: "₹80 Thousand - ₹1.6 Lakh",
+    investmentMin: 80000,
+    investmentMax: 160000,
     description: "Artisanal coffee shop with specialty drinks and pastries",
     image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop",
     features: ["Artisanal coffee", "Fresh pastries", "WiFi available", "Loyalty program"]
@@ -53,7 +63,9 @@ const defaultFoodBrands = [
     id: 6,
     name: "Ice Cream Delight",
     category: "Desserts",
-    investment: "₹50 Lakh - ₹1.2 Cr",
+    investment: "₹80 Thousand - ₹1.2 Lakh",
+    investmentMin: 80000,
+    investmentMax: 120000,
     description: "Gourmet ice cream with unique flavors and toppings",
     image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop",
     features: ["Gourmet flavors", "Custom toppings", "Seasonal menu", "Party catering"]
@@ -64,9 +76,26 @@ const Home = () => {
   const [foodBrands, setFoodBrands] = useState(defaultFoodBrands);
   const navigate = useNavigate();
 
+  const formatAmount = (amount) => {
+    if (amount == null) return '';
+    if (amount < 100000) {
+      const thousands = Math.round(amount / 1000);
+      return `₹${thousands} Thousand`;
+    }
+    const lakhs = Math.round((amount / 100000) * 10) / 10;
+    return `₹${lakhs} Lakh`;
+  };
+
+  const formatInvestmentRange = (min, max, fallbackLabel) => {
+    if (typeof min === 'number' && typeof max === 'number') {
+      return `${formatAmount(min)} - ${formatAmount(max)}`;
+    }
+    return fallbackLabel || '';
+  };
+
   useEffect(() => {
     // Fetch brands from API
-    fetch('http://localhost:5000/api/brands')
+    fetch('http://localhost:5001/api/brands')
       .then(response => response.json())
       .then(data => setFoodBrands(data))
       .catch(error => {
@@ -129,7 +158,7 @@ const Home = () => {
               <div className="brand-info">
                 <h3>{brand.name}</h3>
                 <p className="brand-category">{brand.category}</p>
-                <p className="brand-investment">{brand.investment}</p>
+                <p className="brand-investment">{formatInvestmentRange(brand.investmentMin, brand.investmentMax, brand.investment)}</p>
                 <p className="brand-description">{brand.description}</p>
               </div>
             </motion.div>

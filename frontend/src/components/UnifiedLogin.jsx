@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const UnifiedLogin = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [role, setRole] = useState('user'); // user | owner | admin
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const UnifiedLogin = ({ onLogin }) => {
 
     try {
       // Check for admin credentials first
-      if (credentials.email === 'admin' && credentials.password === 'admin123') {
+      if (role === 'admin' && credentials.email === 'admin' && credentials.password === 'admin123') {
         const adminData = {
           id: 1,
           username: credentials.email,
@@ -29,7 +30,7 @@ const UnifiedLogin = ({ onLogin }) => {
         navigate('/admin-dashboard');
       }
       // Check for alternative admin credentials
-      else if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
+      else if (role === 'admin' && credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
         const adminData = {
           id: 1,
           username: credentials.email,
@@ -42,8 +43,16 @@ const UnifiedLogin = ({ onLogin }) => {
         onLogin(adminData, 'admin');
         navigate('/admin-dashboard');
       }
-      // Allow new users to login with any valid email/password combination
-      else if (credentials.email && credentials.password) {
+      // Owner route: direct to submission form after lightweight auth
+      else if (role === 'owner' && credentials.email && credentials.password) {
+        const ownerData = { id: Date.now(), email: credentials.email, role: 'owner' };
+        sessionStorage.setItem('userLoggedIn', 'true');
+        sessionStorage.setItem('userData', JSON.stringify(ownerData));
+        onLogin(ownerData, 'user');
+        navigate('/submit-franchise');
+      }
+      // Regular user route
+      else if (role === 'user' && credentials.email && credentials.password) {
         // Check if this is a returning user
         const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
         const existingUser = existingUsers.find(user => user.email === credentials.email);
@@ -57,8 +66,8 @@ const UnifiedLogin = ({ onLogin }) => {
             role: 'user'
           };
           
-          localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userData', JSON.stringify(userData));
+          sessionStorage.setItem('userLoggedIn', 'true');
+          sessionStorage.setItem('userData', JSON.stringify(userData));
           onLogin(userData, 'user');
           navigate('/');
         } else if (!existingUser) {
@@ -82,8 +91,8 @@ const UnifiedLogin = ({ onLogin }) => {
             role: 'user'
           };
           
-          localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userData', JSON.stringify(userData));
+          sessionStorage.setItem('userLoggedIn', 'true');
+          sessionStorage.setItem('userData', JSON.stringify(userData));
           onLogin(userData, 'user');
           navigate('/');
         } else {
@@ -108,11 +117,19 @@ const UnifiedLogin = ({ onLogin }) => {
       <div className="unified-login">
         <div className="login-card">
           <div className="login-header">
-            <h2>Welcome to FranchiseHub</h2>
+            <h2>Welcome to FranchiseConnect</h2>
             <p className="login-subtitle">Sign in to access your account</p>
           </div>
           
           <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Login as:</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="user">User</option>
+                <option value="owner">Owner</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
             <div className="form-group">
               <label>Email or Username:</label>
               <input
