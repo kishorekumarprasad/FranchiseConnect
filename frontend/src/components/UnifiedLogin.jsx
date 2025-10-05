@@ -172,6 +172,9 @@ const UnifiedLogin = ({ onLogin }) => {
           
           <div className="login-footer">
             <p>New users can sign in with any email and password combination</p>
+            <p className="security-note">
+              ⚠️ This is a demo environment. Use secure authentication in production.
+            </p>
           </div>
         </div>
       </div>
