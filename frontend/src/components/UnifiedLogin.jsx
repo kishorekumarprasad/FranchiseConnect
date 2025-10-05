@@ -43,13 +43,18 @@ const UnifiedLogin = ({ onLogin }) => {
         onLogin(adminData, 'admin');
         navigate('/admin-dashboard');
       }
-      // Owner route: direct to submission form after lightweight auth
+      // Owner route: direct to owner dashboard after lightweight auth
       else if (role === 'owner' && credentials.email && credentials.password) {
-        const ownerData = { id: Date.now(), email: credentials.email, role: 'owner' };
+        const ownerData = { 
+          id: Date.now(), 
+          email: credentials.email, 
+          name: credentials.email.split('@')[0],
+          role: 'owner' 
+        };
         sessionStorage.setItem('userLoggedIn', 'true');
         sessionStorage.setItem('userData', JSON.stringify(ownerData));
         onLogin(ownerData, 'user');
-        navigate('/submit-franchise');
+        navigate('/owner-dashboard');
       }
       // Regular user route
       else if (role === 'user' && credentials.email && credentials.password) {

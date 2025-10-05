@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 const UserDashboard = ({ userData, onLogout }) => {
@@ -6,7 +6,7 @@ const UserDashboard = ({ userData, onLogout }) => {
   const [loading, setLoading] = useState(true);
 
   // Function to fetch user-specific inquiries from sessionStorage
-  const fetchUserInquiries = () => {
+  const fetchUserInquiries = useCallback(() => {
     try {
       const userId = userData?.id;
       if (!userId) {
@@ -29,7 +29,7 @@ const UserDashboard = ({ userData, onLogout }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userData?.id]);
 
   useEffect(() => {
     fetchUserInquiries();
@@ -57,7 +57,7 @@ const UserDashboard = ({ userData, onLogout }) => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('inquirySubmitted', handleInquiryUpdate);
     };
-  }, [userData?.id]);
+  }, [userData?.id, fetchUserInquiries]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('userLoggedIn');

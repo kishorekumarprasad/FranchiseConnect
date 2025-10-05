@@ -12,13 +12,12 @@ import Reviews from './components/Reviews';
 import UnifiedLogin from './components/UnifiedLogin';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import OwnerSubmit from './components/OwnerSubmit';
+import OwnerDashboard from './components/OwnerDashboard';
 
 function App() {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [adminData, setAdminData] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage for theme preference
@@ -30,16 +29,13 @@ function App() {
     const userStatus = localStorage.getItem('userLoggedIn');
     const adminStatus = localStorage.getItem('adminLoggedIn');
     const storedUserData = localStorage.getItem('userData');
-    const storedAdminData = localStorage.getItem('adminData');
-
     if (userStatus === 'true' && storedUserData) {
       setIsUserLoggedIn(true);
       setUserData(JSON.parse(storedUserData));
     }
 
-    if (adminStatus === 'true' && storedAdminData) {
+    if (adminStatus === 'true') {
       setIsAdminLoggedIn(true);
-      setAdminData(JSON.parse(storedAdminData));
     }
   }, []);
 
@@ -56,7 +52,6 @@ function App() {
   const handleLogin = (userData, role) => {
     if (role === 'admin') {
       setIsAdminLoggedIn(true);
-      setAdminData(userData);
       // Clear any user session
       setIsUserLoggedIn(false);
       setUserData(null);
@@ -67,7 +62,6 @@ function App() {
       setUserData(userData);
       // Clear any admin session
       setIsAdminLoggedIn(false);
-      setAdminData(null);
       localStorage.removeItem('adminLoggedIn');
       localStorage.removeItem('adminData');
     }
@@ -82,7 +76,6 @@ function App() {
 
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
-    setAdminData(null);
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('adminData');
   };
@@ -102,8 +95,8 @@ function App() {
   return (
     <Router>
       <div className={`app${darkMode ? ' dark' : ''}`}>
-        {/* Show navigation only for regular users */}
-        {isUserLoggedIn && (
+        {/* Show navigation only for regular users, not for owners */}
+        {isUserLoggedIn && userData?.role !== 'owner' && (
         <nav className="navbar">
           <div className="nav-brand">
             <Link to="/" onClick={closeMobileMenu}>FranchiseConnect</Link>
@@ -126,7 +119,6 @@ function App() {
             <Link to="/about" onClick={closeMobileMenu}>About</Link>
             <Link to="/contact" onClick={closeMobileMenu}>Contact</Link>
             <Link to="/reviews" onClick={closeMobileMenu}>Reviews</Link>
-            <Link to="/submit-franchise" onClick={closeMobileMenu}>Submit Franchise</Link>
             <Link to="/dashboard" className="dashboard-link" onClick={closeMobileMenu}>Dashboard</Link>
             <button onClick={handleUserLogout} className="logout-nav-button">
               Logout
@@ -163,22 +155,36 @@ function App() {
               } 
             />
             
-            {/* User Dashboard Route - only accessible to users */}
+            {/* User Dashboard Route - only accessible to regular users */}
             <Route 
               path="/dashboard" 
               element={
-                isUserLoggedIn ? 
+                isUserLoggedIn && userData?.role !== 'owner' ? 
                 <Page><UserDashboard userData={userData} onLogout={handleUserLogout} /></Page> : 
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
+                <Navigate to="/login" replace />
+              } 
+            />
+
+            {/* Owner Dashboard Route - only accessible to owners */}
+            <Route 
+              path="/owner-dashboard" 
+              element={
+                isUserLoggedIn && userData?.role === 'owner' ? 
+                <Page><OwnerDashboard userData={userData} onLogout={handleUserLogout} /></Page> : 
                 <Navigate to="/login" replace />
               } 
             />
             
-            {/* User-only routes - redirect admins to admin dashboard */}
+            {/* User-only routes - redirect admins to admin dashboard, owners to owner dashboard */}
             <Route 
               path="/" 
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
                 <Page><Home /></Page>
@@ -190,6 +196,8 @@ function App() {
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
                 <Page><Franchises /></Page>
@@ -201,6 +209,8 @@ function App() {
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
                 <Page><About /></Page>
@@ -212,6 +222,8 @@ function App() {
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
                 <Page><Contact /></Page>
@@ -223,27 +235,32 @@ function App() {
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
                 <Page><Reviews /></Page>
               } 
             />
 
+            {/* Owner-only route - separate from user routes */}
             <Route 
-              path="/submit-franchise" 
+              path="/owner-submit" 
               element={
                 isAdminLoggedIn ? 
                 <Navigate to="/admin" replace /> :
+                isUserLoggedIn && userData?.role === 'owner' ?
+                <Navigate to="/owner-dashboard" replace /> :
                 !isUserLoggedIn ? 
                 <Navigate to="/login" replace /> : 
-                <Page><OwnerSubmit /></Page>
+                <Navigate to="/owner-dashboard" replace />
               } 
             />
           </Routes>
         </main>
         
-        {/* Only show footer for regular users */}
-        {isUserLoggedIn && (
+        {/* Only show footer for regular users, not for owners */}
+        {isUserLoggedIn && userData?.role !== 'owner' && (
         <footer className="footer">
           <p>&copy; 2024 FranchiseConnect. All rights reserved.</p>
         </footer>
